@@ -21,14 +21,12 @@ begin
    declare
       D : DFA_Type (Num_States => 2, Num_Symbols => 1) :=
         (Num_States => 2, Num_Symbols => 1,
-         Transitions => ((0 => 1, others => <>) => 1, others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0], others => [others => 0]],
          Initial     => 0,
-         Finals      => (0 => False, 1 => True, others => False));
+         Finals      => [0 => False, 1 => True, others => False]);
    begin
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 1;
       Check ("1.1 Valid DFA returns true", Validate_Dfa (D));
-      Check ("1.2 Initial state is within bounds", D.Initial < D.Num_States);
+      Check ("1.2 Initial state is within bounds", State_Count_Range (D.Initial) < D.Num_States);
       Check ("1.3 Num_States is positive", D.Num_States > 0);
    end;
 
@@ -37,9 +35,9 @@ begin
    declare
       D : DFA_Type (Num_States => 2, Num_Symbols => 1) :=
         (Num_States => 2, Num_Symbols => 1,
-         Transitions => ((others => 0), others => (others => 0)),
+         Transitions => [others => [others => 0]],
          Initial     => 0,
-         Finals      => (others => False));
+         Finals      => [others => False]);
    begin
       D.Transitions (0, 0) := 5; -- Out of bounds target
       Check ("2.1 Invalid DFA transition detected", not Validate_Dfa (D));
@@ -52,9 +50,9 @@ begin
    declare
       D : DFA_Type (Num_States => 0, Num_Symbols => 1) :=
         (Num_States => 0, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [others => [others => 0]],
          Initial     => 0,
-         Finals      => (others => False));
+         Finals      => [others => False]);
    begin
       Check ("3.1 Zero-state DFA is invalid", not Validate_Dfa (D));
       Check ("3.2 Num_States is zero", D.Num_States = 0);
@@ -66,17 +64,14 @@ begin
    declare
       D : DFA_Type (Num_States => 2, Num_Symbols => 1) :=
         (Num_States => 2, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0], 1 => [0 => 0, others => 0], others => [others => 0]],
          Initial     => 0,
-         Finals      => (0 => False, 1 => True, others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [0 => False, 1 => True, others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 0;
-      Min := Minimize_Moore (D);
       Check ("4.1 Minimized DFA has 2 states", Min.Num_States = 2);
       Check ("4.2 Minimized DFA is valid", Validate_Dfa (Min));
-      Check ("4.3 Initial state preserved or mapped correctly", Min.Initial < Min.Num_States);
+      Check ("4.3 Initial state preserved or mapped correctly", State_Count_Range (Min.Initial) < Min.Num_States);
    end;
 
    -- TEST 5 — Minimization of DFA with Redundant Equivalent States
@@ -85,16 +80,15 @@ begin
       -- States 1 and 2 are equivalent (both go to final state 3 on symbol 0)
       D : DFA_Type (Num_States => 4, Num_Symbols => 1) :=
         (Num_States => 4, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0],
+                         1 => [0 => 3, others => 0],
+                         2 => [0 => 3, others => 0],
+                         3 => [0 => 3, others => 0],
+                         others => [others => 0]],
          Initial     => 0,
-         Finals      => (3 => True, others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [3 => True, others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 3;
-      D.Transitions (2, 0) := 3;
-      D.Transitions (3, 0) := 3;
-      Min := Minimize_Moore (D);
       Check ("5.1 Minimized DFA reduces state count", Min.Num_States < D.Num_States);
       Check ("5.2 Minimized DFA has 3 states", Min.Num_States = 3);
       Check ("5.3 Minimized DFA is valid", Validate_Dfa (Min));
@@ -105,19 +99,17 @@ begin
    declare
       D : DFA_Type (Num_States => 3, Num_Symbols => 1) :=
         (Num_States => 3, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0],
+                         1 => [0 => 1, others => 0],
+                         2 => [0 => 2, others => 0],
+                         others => [others => 0]],
          Initial     => 0,
-         Finals      => (1 => True, 2 => True, others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [1 => True, 2 => True, others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      -- States 1 and 2 are both final and loop to themselves
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 1;
-      D.Transitions (2, 0) := 2;
-      Min := Minimize_Moore (D);
       Check ("6.1 Equivalent final states merged", Min.Num_States = 2);
       Check ("6.2 Resulting DFA is valid", Validate_Dfa (Min));
-      Check ("6.3 Initial state is valid", Min.Initial < Min.Num_States);
+      Check ("6.3 Initial state is valid", State_Count_Range (Min.Initial) < Min.Num_States);
    end;
 
    -- TEST 7 — Single-State Accepting DFA Minimization
@@ -125,13 +117,11 @@ begin
    declare
       D : DFA_Type (Num_States => 1, Num_Symbols => 1) :=
         (Num_States => 1, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 0, others => 0], others => [others => 0]],
          Initial     => 0,
-         Finals      => (0 => True, others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [0 => True, others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 0;
-      Min := Minimize_Moore (D);
       Check ("7.1 Single state remains 1 state", Min.Num_States = 1);
       Check ("7.2 State is accepting", Min.Finals (0));
       Check ("7.3 Valid output DFA", Validate_Dfa (Min));
@@ -142,13 +132,11 @@ begin
    declare
       D : DFA_Type (Num_States => 1, Num_Symbols => 1) :=
         (Num_States => 1, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 0, others => 0], others => [others => 0]],
          Initial     => 0,
-         Finals      => (others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 0;
-      Min := Minimize_Moore (D);
       Check ("8.1 Single rejecting state remains 1", Min.Num_States = 1);
       Check ("8.2 State is rejecting", not Min.Finals (0));
       Check ("8.3 Valid output DFA", Validate_Dfa (Min));
@@ -159,15 +147,14 @@ begin
    declare
       D : DFA_Type (Num_States => 3, Num_Symbols => 1) :=
         (Num_States => 3, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0],
+                         1 => [0 => 2, others => 0],
+                         2 => [0 => 0, others => 0],
+                         others => [others => 0]],
          Initial     => 0,
-         Finals      => (others => True));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [others => True]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 2;
-      D.Transitions (2, 0) := 0;
-      Min := Minimize_Moore (D);
       Check ("9.1 All accepting states collapse to 1 state", Min.Num_States = 1);
       Check ("9.2 Single state is accepting", Min.Finals (0));
       Check ("9.3 Valid output DFA", Validate_Dfa (Min));
@@ -178,15 +165,14 @@ begin
    declare
       D : DFA_Type (Num_States => 3, Num_Symbols => 1) :=
         (Num_States => 3, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0],
+                         1 => [0 => 2, others => 0],
+                         2 => [0 => 0, others => 0],
+                         others => [others => 0]],
          Initial     => 0,
-         Finals      => (others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 2;
-      D.Transitions (2, 0) := 0;
-      Min := Minimize_Moore (D);
       Check ("10.1 All rejecting states collapse to 1 state", Min.Num_States = 1);
       Check ("10.2 Single state is rejecting", not Min.Finals (0));
       Check ("10.3 Valid output DFA", Validate_Dfa (Min));
@@ -197,15 +183,15 @@ begin
    declare
       Invalid_D : DFA_Type (Num_States => 2, Num_Symbols => 1) :=
         (Num_States => 2, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [others => [others => 0]],
          Initial     => 0,
-         Finals      => (others => False));
+         Finals      => [others => False]);
       Exception_Raised : Boolean := False;
    begin
       Invalid_D.Transitions (0, 0) := 99; -- Invalid transition
       begin
          declare
-            Res : DFA_Type := Minimize_Moore (Invalid_D);
+            Res : constant DFA_Type := Minimize_Moore (Invalid_D);
          begin
             pragma Unreferenced (Res);
             null;
@@ -224,15 +210,14 @@ begin
    declare
       D : DFA_Type (Num_States => 3, Num_Symbols => 2) :=
         (Num_States => 3, Num_Symbols => 2,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, 1 => 2, others => 0],
+                         1 => [0 => 1, 1 => 2, others => 0],
+                         2 => [0 => 2, 1 => 2, others => 0],
+                         others => [others => 0]],
          Initial     => 0,
-         Finals      => (2 => True, others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [2 => True, others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      D.Transitions (0, 0) := 1; D.Transitions (0, 1) := 2;
-      D.Transitions (1, 0) := 1; D.Transitions (1, 1) := 2;
-      D.Transitions (2, 0) := 2; D.Transitions (2, 1) := 2;
-      Min := Minimize_Moore (D);
       Check ("12.1 Multi-symbol DFA minimized successfully", Min.Num_States <= D.Num_States);
       Check ("12.2 Minimized multi-symbol DFA is valid", Validate_Dfa (Min));
       Check ("12.3 Symbol count preserved", Min.Num_Symbols = 2);
@@ -243,17 +228,15 @@ begin
    declare
       D : DFA_Type (Num_States => 4, Num_Symbols => 1) :=
         (Num_States => 4, Num_Symbols => 1,
-         Transitions => (others => (others => 0)),
+         Transitions => [0 => [0 => 1, others => 0],
+                         1 => [0 => 2, others => 0],
+                         2 => [0 => 3, others => 0],
+                         3 => [0 => 3, others => 0],
+                         others => [others => 0]],
          Initial     => 0,
-         Finals      => (3 => True, others => False));
-      Min : DFA_Type := (Num_States => 0, Num_Symbols => 0);
+         Finals      => [3 => True, others => False]);
+      Min : constant DFA_Type := Minimize_Moore (D);
    begin
-      -- Chain: 0 -> 1 -> 2 -> 3 (all non-final except 3)
-      D.Transitions (0, 0) := 1;
-      D.Transitions (1, 0) := 2;
-      D.Transitions (2, 0) := 3;
-      D.Transitions (3, 0) := 3;
-      Min := Minimize_Moore (D);
       Check ("13.1 Chained DFA minimized", Min.Num_States > 0);
       Check ("13.2 Minimized DFA valid", Validate_Dfa (Min));
       Check ("13.3 State count reduced", Min.Num_States <= D.Num_States);
