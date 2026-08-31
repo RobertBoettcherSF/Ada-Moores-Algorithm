@@ -6,13 +6,19 @@ package body Dfa_Minimization is
 
    function Validate_Dfa (Dfa : DFA_Type) return Boolean is
    begin
+      pragma Warnings (Off, "condition can only be");
       if Dfa.Num_States = 0 or else Dfa.Num_States > Max_States_Count then
+         pragma Warnings (On, "condition can only be");
          return False;
       end if;
+      pragma Warnings (On, "condition can only be");
 
+      pragma Warnings (Off, "condition can only be");
       if Dfa.Num_Symbols > Max_Symbols_Count then
+         pragma Warnings (On, "condition can only be");
          return False;
       end if;
+      pragma Warnings (On, "condition can only be");
 
       if Dfa.Initial >= State_Range (Dfa.Num_States) then
          return False;
@@ -36,8 +42,8 @@ package body Dfa_Minimization is
    function Minimize_Moore (Dfa : DFA_Type) return DFA_Type is
       type Partition_Array is array (State_Range) of State_Range;
 
-      Current_Partition : Partition_Array := (others => 0);
-      New_Partition     : Partition_Array := (others => 0);
+      Current_Partition : Partition_Array := [others => 0];
+      New_Partition     : Partition_Array := [others => 0];
       Changed           : Boolean := True;
 
       First_Accept     : State_Range := State_Range'Last;
@@ -74,7 +80,7 @@ package body Dfa_Minimization is
          for I in 0 .. N - 1 loop
             Current_Partition (I) := 0;
          end loop;
-      end if;
+      end loop;
 
       while Changed loop
          Changed := False;
@@ -122,7 +128,7 @@ package body Dfa_Minimization is
       end loop;
 
       declare
-         Mapping        : array (State_Range) of State_Range := (others => State_Range'Last);
+         Mapping        : array (State_Range) of State_Range := [others => State_Range'Last];
          New_Num_States : State_Count_Range := 0;
       begin
          for I in 0 .. N - 1 loop
@@ -140,8 +146,8 @@ package body Dfa_Minimization is
             Min_Dfa : DFA_Type (Num_States => New_Num_States, Num_Symbols => Dfa.Num_Symbols);
          begin
             Min_Dfa.Initial := Mapping (Current_Partition (Dfa.Initial));
-            Min_Dfa.Finals := (others => False);
-            Min_Dfa.Transitions := (others => (others => 0));
+            Min_Dfa.Finals := [others => False];
+            Min_Dfa.Transitions := [others => [others => 0]];
 
             for I in 0 .. N - 1 loop
                declare
