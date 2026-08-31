@@ -80,7 +80,7 @@ package body Dfa_Minimization is
          for I in 0 .. N - 1 loop
             Current_Partition (I) := 0;
          end loop;
-      end loop;
+      end if;
 
       while Changed loop
          Changed := False;
@@ -158,7 +158,7 @@ package body Dfa_Minimization is
                   end if;
 
                   if Sym_Count > 0 then
-                     for Sym in 0 .. Sym_Count - 1 loop
+                     for Sym in 0 .. Symbol_Range (Sym_Count - 1) loop
                         declare
                            Target     : constant State_Range := Dfa.Transitions (I, Sym);
                            New_Target : constant State_Range := Mapping (Current_Partition (Target));
