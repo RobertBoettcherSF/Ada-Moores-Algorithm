@@ -8,14 +8,10 @@ package body Dfa_Minimization is
    begin
       pragma Warnings (Off, "condition can only be");
       if Dfa.Num_States = 0 or else Dfa.Num_States > Max_States_Count then
-         pragma Warnings (On, "condition can only be");
          return False;
       end if;
-      pragma Warnings (On, "condition can only be");
 
-      pragma Warnings (Off, "condition can only be");
       if Dfa.Num_Symbols > Max_Symbols_Count then
-         pragma Warnings (On, "condition can only be");
          return False;
       end if;
       pragma Warnings (On, "condition can only be");
@@ -80,7 +76,7 @@ package body Dfa_Minimization is
          for I in 0 .. N - 1 loop
             Current_Partition (I) := 0;
          end loop;
-      end if;
+      end loop;
 
       while Changed loop
          Changed := False;
