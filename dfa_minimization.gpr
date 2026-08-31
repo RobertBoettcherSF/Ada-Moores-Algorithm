@@ -3,4 +3,8 @@ project Dfa_Minimization is
    for Object_Dir  use "obj";
    for Exec_Dir    use "bin";
    for Main        use ("tests.adb");
+
+   package Compiler is
+      for Default_Switches ("Ada") use ("-gnatwa", "-gnat2022");
+   end Compiler;
 end Dfa_Minimization;
