@@ -6,7 +6,6 @@ package body Dfa_Minimization is
 
    function Validate_Dfa (Dfa : DFA_Type) return Boolean is
    begin
-      -- Check if number of states and symbols are within valid bounds
       if Dfa.Num_States = 0 or else Dfa.Num_States > Max_States_Count then
          return False;
       end if;
@@ -15,12 +14,10 @@ package body Dfa_Minimization is
          return False;
       end if;
 
-      -- Check initial state bounds
       if Dfa.Initial >= State_Range (Dfa.Num_States) then
          return False;
       end if;
 
-      -- Check all transition targets are within valid state range
       for S in 0 .. State_Range (Dfa.Num_States - 1) loop
          for Sym in 0 .. Symbol_Range (Dfa.Num_Symbols - 1) loop
             if Dfa.Transitions (S, Sym) >= State_Range (Dfa.Num_States) then
@@ -51,7 +48,6 @@ package body Dfa_Minimization is
       N                : constant Natural := Natural (Dfa.Num_States);
       Sym_Count        : constant Natural := Natural (Dfa.Num_Symbols);
    begin
-      -- Find first accepting and first rejecting states to serve as initial block identifiers
       for I in 0 .. N - 1 loop
          if Dfa.Finals (I) then
             if not Has_Accept then
@@ -66,7 +62,6 @@ package body Dfa_Minimization is
          end loop;
       end loop;
 
-      -- Initialize partition: separate accepting from non-accepting states
       for I in 0 .. N - 1 loop
          if Dfa.Finals (I) then
             Current_Partition (I) := (if Has_Accept then First_Accept else I);
@@ -75,22 +70,18 @@ package body Dfa_Minimization is
          end if;
       end loop;
 
-      -- If all states are accepting or all are rejecting, 1 initial partition block
       if not Has_Accept or else not Has_Reject then
          for I in 0 .. N - 1 loop
             Current_Partition (I) := 0;
          end loop;
       end loop;
 
-      -- Moore's algorithm iterative refinement loop
       while Changed loop
          Changed := False;
 
-         -- Compute new partition based on current partition and transitions
          for I in 0 .. N - 1 loop
-            New_Partition (I) := I; -- default to self as representative
+            New_Partition (I) := I;
             for J in 0 .. I - 1 loop
-               -- Check if state I is equivalent to state J under current partition
                if Current_Partition (I) = Current_Partition (J) then
                   declare
                      Equivalent : Boolean := True;
@@ -118,7 +109,6 @@ package body Dfa_Minimization is
             end loop;
          end loop;
 
-         -- Check if partition changed
          for I in 0 .. N - 1 loop
             if Current_Partition (I) /= New_Partition (I) then
                Changed := True;
@@ -131,9 +121,8 @@ package body Dfa_Minimization is
          end if;
       end loop;
 
-      -- Map old block representatives to new sequential state indices (0 .. K-1)
       declare
-         Mapping       : array (State_Range) of State_Range := (others => State_Range'Last);
+         Mapping        : array (State_Range) of State_Range := (others => State_Range'Last);
          New_Num_States : State_Count_Range := 0;
       begin
          for I in 0 .. N - 1 loop
@@ -147,7 +136,6 @@ package body Dfa_Minimization is
             end;
          end loop;
 
-         -- Construct minimized DFA
          declare
             Min_Dfa : DFA_Type (Num_States => New_Num_States, Num_Symbols => Dfa.Num_Symbols);
          begin
@@ -166,7 +154,7 @@ package body Dfa_Minimization is
                   if Sym_Count > 0 then
                      for Sym in 0 .. Sym_Count - 1 loop
                         declare
-                           Target    : constant State_Range := Dfa.Transitions (I, Sym);
+                           Target     : constant State_Range := Dfa.Transitions (I, Sym);
                            New_Target : constant State_Range := Mapping (Current_Partition (Target));
                         begin
                            Min_Dfa.Transitions (New_Src, Sym) := New_Target;
