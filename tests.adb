@@ -16,10 +16,13 @@ procedure Tests is
       end if;
    end Check;
 begin
+   pragma Warnings (Off, "condition is always True");
+   pragma Warnings (Off, "condition can only be False");
+
    -- TEST 1 — Basic Validation of Valid DFA
    Put_Line ("TEST 1 — Basic Validation of Valid DFA");
    declare
-      D : DFA_Type (Num_States => 2, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 2, Num_Symbols => 1) :=
         (Num_States => 2, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0], others => [others => 0]],
          Initial     => 0,
@@ -48,7 +51,7 @@ begin
    -- TEST 3 — Validation of Zero-State DFA
    Put_Line ("TEST 3 — Validation of Zero-State DFA");
    declare
-      D : DFA_Type (Num_States => 0, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 0, Num_Symbols => 1) :=
         (Num_States => 0, Num_Symbols => 1,
          Transitions => [others => [others => 0]],
          Initial     => 0,
@@ -62,7 +65,7 @@ begin
    -- TEST 4 — Minimization of Already Minimal DFA
    Put_Line ("TEST 4 — Minimization of Already Minimal DFA");
    declare
-      D : DFA_Type (Num_States => 2, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 2, Num_Symbols => 1) :=
         (Num_States => 2, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0], 1 => [0 => 0, others => 0], others => [others => 0]],
          Initial     => 0,
@@ -78,7 +81,7 @@ begin
    Put_Line ("TEST 5 — Minimization of DFA with Redundant Equivalent States");
    declare
       -- States 1 and 2 are equivalent (both go to final state 3 on symbol 0)
-      D : DFA_Type (Num_States => 4, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 4, Num_Symbols => 1) :=
         (Num_States => 4, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0],
                          1 => [0 => 3, others => 0],
@@ -97,7 +100,7 @@ begin
    -- TEST 6 — Minimization of DFA with Multiple Equivalent States
    Put_Line ("TEST 6 — Minimization of DFA with Multiple Equivalent States");
    declare
-      D : DFA_Type (Num_States => 3, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 3, Num_Symbols => 1) :=
         (Num_States => 3, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0],
                          1 => [0 => 1, others => 0],
@@ -115,7 +118,7 @@ begin
    -- TEST 7 — Single-State Accepting DFA Minimization
    Put_Line ("TEST 7 — Single-State Accepting DFA Minimization");
    declare
-      D : DFA_Type (Num_States => 1, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 1, Num_Symbols => 1) :=
         (Num_States => 1, Num_Symbols => 1,
          Transitions => [0 => [0 => 0, others => 0], others => [others => 0]],
          Initial     => 0,
@@ -130,7 +133,7 @@ begin
    -- TEST 8 — Single-State Rejecting DFA Minimization
    Put_Line ("TEST 8 — Single-State Rejecting DFA Minimization");
    declare
-      D : DFA_Type (Num_States => 1, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 1, Num_Symbols => 1) :=
         (Num_States => 1, Num_Symbols => 1,
          Transitions => [0 => [0 => 0, others => 0], others => [others => 0]],
          Initial     => 0,
@@ -145,7 +148,7 @@ begin
    -- TEST 9 — All-Accepting States DFA
    Put_Line ("TEST 9 — All-Accepting States DFA");
    declare
-      D : DFA_Type (Num_States => 3, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 3, Num_Symbols => 1) :=
         (Num_States => 3, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0],
                          1 => [0 => 2, others => 0],
@@ -163,7 +166,7 @@ begin
    -- TEST 10 — All-Rejecting States DFA
    Put_Line ("TEST 10 — All-Rejecting States DFA");
    declare
-      D : DFA_Type (Num_States => 3, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 3, Num_Symbols => 1) :=
         (Num_States => 3, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0],
                          1 => [0 => 2, others => 0],
@@ -188,7 +191,7 @@ begin
          Finals      => [others => False]);
       Exception_Raised : Boolean := False;
    begin
-      Invalid_D.Transitions (0, 0) := 99; -- Invalid transition
+      Invalid_D.Transitions (0, 0) := 5; -- Target 5 is >= Num_States (2), invalid DFA
       begin
          declare
             Res : constant DFA_Type := Minimize_Moore (Invalid_D);
@@ -208,7 +211,7 @@ begin
    -- TEST 12 — DFA with Multiple Symbols
    Put_Line ("TEST 12 — DFA with Multiple Symbols");
    declare
-      D : DFA_Type (Num_States => 3, Num_Symbols => 2) :=
+      D : constant DFA_Type (Num_States => 3, Num_Symbols => 2) :=
         (Num_States => 3, Num_Symbols => 2,
          Transitions => [0 => [0 => 1, 1 => 2, others => 0],
                          1 => [0 => 1, 1 => 2, others => 0],
@@ -226,7 +229,7 @@ begin
    -- TEST 13 — Chained Redundancy Minimization
    Put_Line ("TEST 13 — Chained Redundancy Minimization");
    declare
-      D : DFA_Type (Num_States => 4, Num_Symbols => 1) :=
+      D : constant DFA_Type (Num_States => 4, Num_Symbols => 1) :=
         (Num_States => 4, Num_Symbols => 1,
          Transitions => [0 => [0 => 1, others => 0],
                          1 => [0 => 2, others => 0],
