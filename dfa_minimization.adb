@@ -76,7 +76,7 @@ package body Dfa_Minimization is
          for I in 0 .. N - 1 loop
             Current_Partition (I) := 0;
          end loop;
-      end loop;
+      end if;
 
       while Changed loop
          Changed := False;
