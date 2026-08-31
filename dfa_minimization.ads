@@ -16,9 +16,9 @@ package Dfa_Minimization is
    type State_Set is array (State_Range) of Boolean;
 
    type DFA_Type (Num_States : State_Count_Range; Num_Symbols : Symbol_Count_Range) is record
-      Transitions : Transition_Table := (others => (others => 0));
+      Transitions : Transition_Table := [others => [others => 0]];
       Initial     : State_Range      := 0;
-      Finals      : State_Set        := (others => False);
+      Finals      : State_Set        := [others => False];
    end record;
 
    -- Exceptions for error handling
